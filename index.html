@@ -109,11 +109,48 @@
   <footer>Barber Studio</footer>
 
   <script>
-    document.getElementById("booking").addEventListener("submit", function(e) {
-      e.preventDefault();
-      document.getElementById("message").textContent =
-        "Formularz działa, ale rezerwacja nie została jeszcze zapisana. System bazy danych dodamy w kolejnym kroku.";
+  const SUPABASE_URL = "https://fnsfjrhadqoatlrxuydf.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Czna2VU4mLbSEHHFWsYgNw_65vhj2vk";
+
+document.getElementById("booking").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const message = document.getElementById("message");
+  message.textContent = "Zapisywanie...";
+
+  const booking = {
+    customer_name: document.getElementById("name").value.trim(),
+    customer_phone: document.getElementById("phone").value.trim(),
+    service: document.getElementById("service").value,
+    appointment_date: document.getElementById("date").value,
+    appointment_time: document.getElementById("time").value + ":00"
+  };
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_KEY,
+        "Authorization": `Bearer ${SUPABASE_KEY}`,
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify(booking)
     });
+
+    if (response.ok) {
+      message.textContent = "Rezerwacja zapisana!";
+      document.getElementById("booking").reset();
+    } else if (response.status === 409) {
+      message.textContent = "Ten termin jest już zajęty.";
+    } else {
+      message.textContent = "Błąd zapisu. Spróbuj ponownie.";
+      console.error(await response.text());
+    }
+  } catch (error) {
+    message.textContent = "Brak połączenia z bazą.";
+  }
+});
   </script>
 </body>
 </html>
